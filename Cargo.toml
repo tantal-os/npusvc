@@ -1,0 +1,13 @@
+[package]
+name = "npusvc"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+npusvc-sdk = { git = "https://github.com/tantal-os/npusvc-sdk.git", rev = "c0a1e5803527a549aef408e68c3ed288b930aed6" }
+
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+indexing_slicing = "deny"

@@ -1,0 +1,28 @@
+name: Build
+
+on: [push, pull_request, workflow_dispatch]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install Rust
+        run: |
+          rustup toolchain install 1.95.0 --profile minimal --component rustfmt --component clippy --target aarch64-linux-android
+          rustup override set 1.95.0
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --locked --workspace --all-targets -- -D warnings
+      - run: cargo test --locked --workspace
+      - name: Build for Android arm64
+        run: |
+          ndk="30.0.16248370"
+          sdkmanager --install "ndk;$ndk"
+          toolchain="$ANDROID_HOME/ndk/$ndk/toolchains/llvm/prebuilt/linux-x86_64"
+          export CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER="$toolchain/bin/aarch64-linux-android36-clang"
+          cargo build --locked --workspace --release --target aarch64-linux-android
