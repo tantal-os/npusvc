@@ -7,7 +7,9 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    env:
+      CARGO_NET_GIT_FETCH_WITH_CLI: "true"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -22,7 +24,10 @@ jobs:
       - name: Build for Android arm64
         run: |
           ndk="30.0.16248370"
-          sdkmanager --install "ndk;$ndk"
-          toolchain="$ANDROID_HOME/ndk/$ndk/toolchains/llvm/prebuilt/linux-x86_64"
-          export CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER="$toolchain/bin/aarch64-linux-android36-clang"
+          sdk="${ANDROID_HOME:?Android SDK is unavailable}"
+          linker="$sdk/ndk/$ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android36-clang"
+          if [[ ! -x "$linker" ]]; then
+            "$sdk/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$sdk" --install "ndk;$ndk"
+          fi
+          export CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER="$linker"
           cargo build --locked --workspace --release --target aarch64-linux-android
